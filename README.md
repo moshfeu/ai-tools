@@ -20,10 +20,11 @@ skills/               GitHub Copilot CLI skills
 
 ## Installing a tool
 
-Each tool has its own `install.sh`. From the repo root:
+Each tool installs via a one-liner — no cloning required:
 
 ```bash
-bash copilot-extensions/ask-notifier/install.sh
+# Example: ask-notifier
+curl -fsSL https://raw.githubusercontent.com/moshfeu/ai-tools/main/copilot-extensions/ask-notifier/install.sh | bash
 ```
 
 ## Contributing

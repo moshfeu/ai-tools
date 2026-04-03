@@ -22,7 +22,7 @@ function detectApp() {
   return { name: "Terminal", bundleId: "com.apple.Terminal" };
 }
 
-// ── terminal-notifier: auto-install on first use ─────────────────────────────
+// ── terminal-notifier: check availability ────────────────────────────────────
 
 let terminalNotifierAvailable = null; // cached after first check
 
@@ -32,13 +32,7 @@ async function ensureTerminalNotifier() {
     await execAsync("which terminal-notifier");
     terminalNotifierAvailable = true;
   } catch {
-    // Not installed — try to install silently via Homebrew
-    try {
-      await execAsync("brew install terminal-notifier");
-      terminalNotifierAvailable = true;
-    } catch {
-      terminalNotifierAvailable = false;
-    }
+    terminalNotifierAvailable = false;
   }
   return terminalNotifierAvailable;
 }
