@@ -65,7 +65,7 @@ async function notify(question) {
 
 // ── Extension ────────────────────────────────────────────────────────────────
 
-await joinSession({
+const session = await joinSession({
   hooks: {
     onPreToolUse: async (input) => {
       if (input.toolName === "ask_user") {
@@ -74,4 +74,20 @@ await joinSession({
       }
     },
   },
+});
+
+// Also notify on permission requests (e.g. "Do you want to run this command?")
+session.on("permission.requested", (event) => {
+  const kind = event.data?.permissionRequest?.kind ?? "action";
+  const detail = event.data?.permissionRequest?.fullCommandText
+    ?? event.data?.permissionRequest?.path
+    ?? kind;
+  const messages = {
+    shell: `Run command: ${detail}`,
+    write: `Write file: ${detail}`,
+    read: `Read file: ${detail}`,
+    url: `Access URL: ${detail}`,
+  };
+  const message = messages[kind] ?? `Permission needed: ${detail}`;
+  notify(message).catch(() => {});
 });
