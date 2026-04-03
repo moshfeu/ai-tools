@@ -6,15 +6,11 @@ When Copilot asks you a question, you'll get a native notification — click it 
 
 ## Install
 
-One command — no cloning required:
-
 ```bash
-curl -fsSL https://raw.githubusercontent.com/moshfeu/ai-tools/main/copilot-extensions/ask-notifier/install.sh | bash
+npx github:moshfeu/ai-tools ask-notifier
 ```
 
-This will:
-1. Install `terminal-notifier` via Homebrew (if Homebrew is available)
-2. Download the extension to `~/.copilot/extensions/ask-notifier/`
+This will install `terminal-notifier` via Homebrew and copy the extension to `~/.copilot/extensions/ask-notifier/`. No cloning or npm publish required.
 
 Then restart your session: type `/restart` in the Copilot CLI.
 

@@ -20,11 +20,16 @@ skills/               GitHub Copilot CLI skills
 
 ## Installing a tool
 
-Each tool installs via a one-liner — no cloning required:
+No cloning or npm publish needed — install directly from GitHub:
 
 ```bash
-# Example: ask-notifier
-curl -fsSL https://raw.githubusercontent.com/moshfeu/ai-tools/main/copilot-extensions/ask-notifier/install.sh | bash
+npx github:moshfeu/ai-tools ask-notifier
+```
+
+Run without arguments to list all available tools:
+
+```bash
+npx github:moshfeu/ai-tools
 ```
 
 ## Contributing
