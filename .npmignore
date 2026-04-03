@@ -1,0 +1,3 @@
+# Exclude files not needed at runtime
+*.sh
+.DS_Store
