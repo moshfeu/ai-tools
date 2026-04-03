@@ -8,18 +8,40 @@ const execAsync = promisify(exec);
 
 function detectApp() {
   if (process.env.CURSOR_TRACE_ID || process.env.CURSOR_SESSION_ID) {
-    return { name: "Cursor", bundleId: "com.todesktop.230313mzl4w4u92" };
+    return { name: "Cursor", bundleId: "com.todesktop.230313mzl4w4u92", cli: "cursor" };
   }
   if (process.env.TERM_PROGRAM === "vscode") {
-    return { name: "VS Code", bundleId: "com.microsoft.VSCode" };
+    return { name: "VS Code", bundleId: "com.microsoft.VSCode", cli: "code" };
   }
   if (process.env.TERM_PROGRAM === "iTerm.app") {
-    return { name: "iTerm2", bundleId: "com.googlecode.iterm2" };
+    return { name: "iTerm2", bundleId: "com.googlecode.iterm2", cli: null };
   }
   if (process.env.TERM_PROGRAM === "WarpTerminal") {
-    return { name: "Warp", bundleId: "dev.warp.Warp-Stable" };
+    return { name: "Warp", bundleId: "dev.warp.Warp-Stable", cli: null };
   }
-  return { name: "Terminal", bundleId: "com.apple.Terminal" };
+  return { name: "Terminal", bundleId: "com.apple.Terminal", cli: null };
+}
+
+// Focus the exact VS Code / Cursor window for the current working directory.
+// Running `code <dir>` or `cursor <dir>` when the folder is already open
+// just focuses that window — no new window is created.
+async function focusWindow(app) {
+  if (!app.cli) {
+    // For non-editor terminals, just activate the app
+    await execAsync(
+      `osascript -e 'tell application id "${app.bundleId}" to activate'`
+    ).catch(() => {});
+    return;
+  }
+  try {
+    await execAsync(`which ${app.cli}`, { stdio: "ignore" });
+    await execAsync(`${app.cli} "${process.cwd()}"`);
+  } catch {
+    // cli not on PATH — fall back to plain app activation
+    await execAsync(
+      `osascript -e 'tell application id "${app.bundleId}" to activate'`
+    ).catch(() => {});
+  }
 }
 
 // ── terminal-notifier: check availability ────────────────────────────────────
@@ -53,14 +75,13 @@ async function notify(question) {
       `terminal-notifier -title "${title}" -message "${msg}" -activate "${app.bundleId}" -sound Glass`
     ).catch(() => {});
   } else {
-    // Fallback: OS notification + activate app
     await execAsync(
       `osascript -e 'display notification "${msg}" with title "${title}" sound name "Glass"'`
     ).catch(() => {});
-    await execAsync(
-      `osascript -e 'tell application id "${app.bundleId}" to activate'`
-    ).catch(() => {});
   }
+
+  // Focus the exact window for this working directory
+  await focusWindow(app);
 }
 
 // ── Extension ────────────────────────────────────────────────────────────────
