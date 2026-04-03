@@ -22,28 +22,6 @@ function detectApp() {
   return { name: "Terminal", bundleId: "com.apple.Terminal", cli: null };
 }
 
-// Focus the exact VS Code / Cursor window for the current working directory.
-// Running `code <dir>` or `cursor <dir>` when the folder is already open
-// just focuses that window — no new window is created.
-async function focusWindow(app) {
-  if (!app.cli) {
-    // For non-editor terminals, just activate the app
-    await execAsync(
-      `osascript -e 'tell application id "${app.bundleId}" to activate'`
-    ).catch(() => {});
-    return;
-  }
-  try {
-    await execAsync(`which ${app.cli}`, { stdio: "ignore" });
-    await execAsync(`${app.cli} "${process.cwd()}"`);
-  } catch {
-    // cli not on PATH — fall back to plain app activation
-    await execAsync(
-      `osascript -e 'tell application id "${app.bundleId}" to activate'`
-    ).catch(() => {});
-  }
-}
-
 // ── terminal-notifier: check availability ────────────────────────────────────
 
 let terminalNotifierAvailable = null; // cached after first check
@@ -69,19 +47,24 @@ async function notify(question) {
   const app = detectApp();
   const title = "Copilot needs your answer";
   const msg = escape(question);
+  const cwd = process.cwd();
 
   if (await ensureTerminalNotifier()) {
+    // -sender: show the hosting app's icon
+    // -execute: focus the exact window only when notification is clicked
+    const onClick = app.cli
+      ? `${app.cli} '${cwd}'`
+      : `osascript -e 'tell application id "${app.bundleId}" to activate'`;
+
     await execAsync(
-      `terminal-notifier -title "${title}" -message "${msg}" -activate "${app.bundleId}" -sound Glass`
+      `terminal-notifier -title "${title}" -message "${msg}" -sender "${app.bundleId}" -execute "${onClick}" -sound Glass`
     ).catch(() => {});
   } else {
+    // Fallback: plain OS notification (no click handler available)
     await execAsync(
       `osascript -e 'display notification "${msg}" with title "${title}" sound name "Glass"'`
     ).catch(() => {});
   }
-
-  // Focus the exact window for this working directory
-  await focusWindow(app);
 }
 
 // ── Extension ────────────────────────────────────────────────────────────────
